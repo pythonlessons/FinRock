@@ -15,7 +15,7 @@ env = TradingEnv(
 )
 action_space = env.action_space
 
-pygameRender = PygameRender(frame_rate=30)
+pygameRender = PygameRender(frame_rate=10)
 
 
 state, info = env.reset()
