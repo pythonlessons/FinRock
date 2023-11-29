@@ -12,6 +12,8 @@ class ColorTheme:
     down_candle = red
     wick = white
     text = white
+    buy = green
+    sell = red
 
 class PygameRender:
     def __init__(
@@ -127,7 +129,33 @@ class PygameRender:
             # Draw candlestick body
             self.pygame.draw.rect(canvas, candle_color, (candle_offset, candle_body_y, self.candle_width, candle_body_height))
 
+            # Compare with previous state to determine whether buy or sell action was taken and draw arrow
+            index = self._states.index(state)
+            if index > 0:
+                last_state = self._states[index - 1]
+                if last_state.allocation_percentage < state.allocation_percentage:
+                    # buy
+                    self.pygame.draw.polygon(canvas, self.color_theme.buy, [
+                        (candle_offset + self.candle_width // 2, candle_y_low + 10), 
+                        (candle_offset + self.candle_width // 2 - 5, candle_y_low + 20), 
+                        (candle_offset + self.candle_width // 2 + 5, candle_y_low + 20)
+                        ])
+                elif last_state.allocation_percentage > state.allocation_percentage:
+                    # sell
+                    self.pygame.draw.polygon(canvas, self.color_theme.sell, [
+                        (candle_offset + self.candle_width // 2, candle_y_high - 10), 
+                        (candle_offset + self.candle_width // 2 - 5, candle_y_high - 20), 
+                        (candle_offset + self.candle_width // 2 + 5, candle_y_high - 20)
+                        ])
+
             # Move to the next candle
             candle_offset += self.candle_width + self.candle_spacing
+
+        # Draw max and min ohlc values on the chart
+        font = self.pygame.font.SysFont('Noto Sans', 15)
+        label_y_low = font.render(str(max_low), True, self.color_theme.text)
+        label_y_high = font.render(str(max_high), True, self.color_theme.text)
+        canvas.blit(label_y_low, (self.candle_spacing + 5, self.chart_height + 35))
+        canvas.blit(label_y_high, (self.candle_spacing + 5, 5))
 
         return canvas
