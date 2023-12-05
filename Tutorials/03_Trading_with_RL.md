@@ -1,10 +1,19 @@
-# FinRock
-Reinforcement Learning package for Finance
+# Complete Trading Simulation Backbone
 
-# Environment Structure:
+### Environment Structure:
 <p align="center">
-  <img src="Tutorials\Documents\03_FinRock.jpg">
+  <img src="Documents\03_FinRock.jpg">
 </p>
+
+### Link to YouTube video:
+https://youtu.be/...
+
+### Link to tutorial code:
+https://github.com/pythonlessons/FinRock/tree/0.3.0
+
+### Download tutorial code:
+https://github.com/pythonlessons/FinRock/archive/refs/tags/0.3.0.zip
+
 
 ### Install requirements:
 ```
@@ -30,10 +39,5 @@ experiments/testing_ppo_sinusoid.py
 
 ### Environment Render:
 <p align="center">
-  <img src="Tutorials\Documents\03_FinRock_render.png">
+  <img src="Documents\03_FinRock_render.png">
 </p>
-
-## Links to YouTube videos:
-- [Introduction to FinRock package](https://youtu.be/xU_YJB7vilA)
-- [Complete Trading Simulation Backbone](https://youtu.be/1z5geob8Yho)
-- [Training RL agent on Sinusoid data](https://youtu.be/...)
