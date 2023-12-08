@@ -14,7 +14,8 @@ class TradingEnv:
             initial_balance: float = 1000.0,
             max_episode_steps: int = None,
             window_size: int = 50,
-            reward_function: typing.Callable = simpleReward
+            reward_function: typing.Callable = simpleReward,
+            metrics: typing.List[typing.Callable] = []
         ) -> None:
         self._data_feeder = data_feeder
         self._output_transformer = output_transformer
@@ -22,6 +23,7 @@ class TradingEnv:
         self._max_episode_steps = max_episode_steps if max_episode_steps is not None else len(data_feeder)
         self._window_size = window_size
         self._reward_function = reward_function
+        self._metrics = metrics
 
         self._observations = Observations(window_size=window_size)
         self._observation_space = np.zeros(self.reset()[0].shape)
@@ -72,6 +74,19 @@ class TradingEnv:
             next_state.balance = last_state.balance
 
         return action, order_size
+    
+    @property
+    def metrics(self):
+        return self._metrics
+
+    def _metricsHandler(self, observation: State):
+        metrics = {}
+        # Loop through metrics and update
+        for metric in self._metrics:
+            metric.update(observation)
+            metrics[metric.name] = metric.result
+
+        return metrics
 
     def step(self, action: int) -> typing.Tuple[State, float, bool, bool, dict]:
 
@@ -86,7 +101,10 @@ class TradingEnv:
         reward = self._reward_function(self._observations)
         terminated = self._get_terminated()
         truncated = False if self._env_step_indexes else True
-        info = {"states": [observation]}
+        info = {
+            "states": [observation],
+            "metrics": self._metricsHandler(observation)
+            }
 
         transformed_obs = self._output_transformer.transform(self._observations)
 
@@ -104,7 +122,14 @@ class TradingEnv:
         while not self._observations.full:
             self._observations.append(self._get_obs(self._env_step_indexes.pop(0), balance=self._initial_balance))
 
-        info = {"states": self._observations.observations}
+        info = {
+            "states": self._observations.observations,
+            "metrics": {}
+            }
+        
+        # reset metrics with last state
+        for metric in self._metrics:
+            metric.reset(self._observations.observations[-1])
 
         transformed_obs = self._output_transformer.transform(self._observations)
 
