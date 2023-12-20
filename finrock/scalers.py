@@ -12,12 +12,21 @@ class MinMaxScaler:
 
         transformed_data = []
         for state in observations:
-            open = (state.open - self._min) / (self._max - self._min)
-            high = (state.high - self._min) / (self._max - self._min)
-            low = (state.low - self._min) / (self._max - self._min)
-            close = (state.close - self._min) / (self._max - self._min)
+            data = []
+            for name in ['open', 'high', 'low', 'close']:
+                value = getattr(state, name)
+                transformed_value = (value - self._min) / (self._max - self._min)
+                data.append(transformed_value)
             
-            transformed_data.append([open, high, low, close, state.allocation_percentage])
+            data.append(state.allocation_percentage)
+
+            # append scaled indicators
+            for indicator in state.indicators:
+                for value in indicator["values"].values():
+                    transformed_value = (value - indicator["min"]) / (indicator["max"] - indicator["min"])
+                    data.append(transformed_value)
+
+            transformed_data.append(data)
 
         return np.array(transformed_data)
     

@@ -1,11 +1,12 @@
 from .state import State
+import numpy as np
 
 """ Metrics are used to track and log information about the environment.
 possible metrics:
-- DifferentActions,
-- AccountValue, 
-- MaxDrawdown, 
-- SharpeRatio, 
++ DifferentActions,
++ AccountValue, 
++ MaxDrawdown, 
++ SharpeRatio, 
 - AverageProfit, 
 - AverageLoss, 
 - AverageTrade, 
@@ -81,3 +82,64 @@ class AccountValue(Metric):
         super().reset(prev_state)
         
         self.account_value = prev_state.account_value if prev_state else 0.0
+
+
+class MaxDrawdown(Metric):
+    def __init__(self, name: str="max_drawdown") -> None:
+        super().__init__(name=name)
+
+    def update(self, state: State):
+        super().update(state)
+
+        # Use min to find the trough value
+        self.max_account_value = max(self.max_account_value, state.account_value)
+
+        # Calculate drawdown
+        drawdown = (state.account_value - self.max_account_value) / self.max_account_value
+
+        # Update max drawdown if the current drawdown is greater
+        self.max_drawdown = min(self.max_drawdown, drawdown)
+
+    @property
+    def result(self):
+        return self.max_drawdown
+    
+    def reset(self, prev_state: State=None):
+        super().reset(prev_state)
+
+        self.max_account_value = prev_state.account_value if prev_state else 0.0
+        self.max_drawdown = 0.0
+
+
+class SharpeRatio(Metric):
+    def __init__(self, ratio_days=365.25, name: str='sharpe_ratio'):
+        self.ratio_days = ratio_days
+        super().__init__(name=name)
+
+    def update(self, state: State):
+        super().update(state)
+        time_difference_days = (state.date - self.prev_state.date).days
+        if time_difference_days >= 1:
+            self.daily_returns.append((state.account_value - self.prev_state.account_value) / self.prev_state.account_value)
+            self.account_values.append(state.account_value)
+            self.prev_state = state
+        
+    @property
+    def result(self):
+        if len(self.daily_returns) == 0:
+            return 0.0
+
+        mean = np.mean(self.daily_returns)
+        std = np.std(self.daily_returns)
+        if std == 0:
+            return 0.0
+        
+        sharpe_ratio = mean / std * np.sqrt(self.ratio_days)
+        
+        return sharpe_ratio
+    
+    def reset(self, prev_state: State=None):
+        super().reset(prev_state)
+        self.prev_state = prev_state
+        self.account_values = []
+        self.daily_returns = []
