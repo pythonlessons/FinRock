@@ -37,7 +37,7 @@ experiments/testing_ppo_sinusoid.py
 - [Introduction to FinRock package](https://youtu.be/xU_YJB7vilA)
 - [Complete Trading Simulation Backbone](https://youtu.be/1z5geob8Yho)
 - [Training RL agent on Sinusoid data](https://youtu.be/JkA4BuYvWyE)
-- [Training RL agent on Sinusoid data and indiciators](https://youtu.be/bGpBEnKzIdo)
+- [Included metrics and indicators into environment](https://youtu.be/bGpBEnKzIdo)
 
 # TODO:
 - [ ] Train model on `continuous` actions (control allocation percentage)
