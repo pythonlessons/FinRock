@@ -35,6 +35,9 @@ class TradingEnv:
 
     def _get_obs(self, index: int, balance: float=None) -> State:
         next_state = self._data_feeder[index]
+        if next_state is None:
+            return None
+
         if balance is not None:
             next_state.balance = balance
 
@@ -108,6 +111,9 @@ class TradingEnv:
 
         transformed_obs = self._output_transformer.transform(self._observations)
 
+        if np.isnan(transformed_obs).any():
+            raise ValueError("transformed_obs contains nan values, check your data")
+
         return transformed_obs, reward, terminated, truncated, info
 
     def reset(self) -> typing.Tuple[State, dict]:
@@ -120,7 +126,11 @@ class TradingEnv:
         # Initial observations are the first states of the window size
         self._observations.reset()
         while not self._observations.full:
-            self._observations.append(self._get_obs(self._env_step_indexes.pop(0), balance=self._initial_balance))
+            obs = self._get_obs(self._env_step_indexes.pop(0), balance=self._initial_balance)
+            if obs is None:
+                continue
+            # update observations object with new observation
+            self._observations.append(obs)
 
         info = {
             "states": self._observations.observations,
@@ -132,7 +142,9 @@ class TradingEnv:
             metric.reset(self._observations.observations[-1])
 
         transformed_obs = self._output_transformer.transform(self._observations)
-
+        if np.isnan(transformed_obs).any():
+            raise ValueError("transformed_obs contains nan values, check your data")
+        
         # return state and info
         return transformed_obs, info
 

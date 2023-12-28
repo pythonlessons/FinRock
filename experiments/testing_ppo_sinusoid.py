@@ -10,13 +10,24 @@ from finrock.trading_env import TradingEnv
 from finrock.render import PygameRender
 from finrock.scalers import MinMaxScaler
 from finrock.reward import simpleReward
-from finrock.metrics import DifferentActions, AccountValue
+from finrock.metrics import DifferentActions, AccountValue, MaxDrawdown, SharpeRatio
+from finrock.indicators import BolingerBands, RSI, PSAR, SMA
 
 
 df = pd.read_csv('Datasets/random_sinusoid.csv')
 df = df[-1000:]
 
-pd_data_feeder = PdDataFeeder(df)
+pd_data_feeder = PdDataFeeder(
+    df,
+    indicators = [
+        BolingerBands(data=df, period=20, std=2),
+        RSI(data=df, period=14),
+        PSAR(data=df),
+        SMA(data=df, period=7),
+        SMA(data=df, period=25),
+        SMA(data=df, period=99),
+    ]
+    )
 
 env = TradingEnv(
     data_feeder = pd_data_feeder,
@@ -28,6 +39,8 @@ env = TradingEnv(
     metrics = [
         DifferentActions(),
         AccountValue(),
+        MaxDrawdown(),
+        SharpeRatio(),
     ]
 )
 
@@ -35,7 +48,7 @@ action_space = env.action_space
 input_shape = env.observation_space.shape
 pygameRender = PygameRender(frame_rate=120)
 
-agent = tf.keras.models.load_model('runs/1701698276/ppo_sinusoid_actor.h5')
+agent = tf.keras.models.load_model('runs/1702982487/ppo_sinusoid_actor.h5')
 
 state, info = env.reset()
 pygameRender.render(info)
@@ -51,7 +64,9 @@ while True:
     pygameRender.render(info)
 
     if terminated or truncated:
-        print(rewards, info["metrics"]['account_value'])
+        print(rewards)
+        for metric, value in info['metrics'].items():
+            print(metric, value)
         state, info = env.reset()
         rewards = 0.0
         pygameRender.reset()

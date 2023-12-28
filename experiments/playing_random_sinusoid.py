@@ -6,11 +6,21 @@ from finrock.trading_env import TradingEnv
 from finrock.render import PygameRender
 from finrock.scalers import MinMaxScaler
 from finrock.reward import simpleReward
+from finrock.indicators import BolingerBands, SMA, RSI, PSAR
 
 df = pd.read_csv('Datasets/random_sinusoid.csv')
 
-pd_data_feeder = PdDataFeeder(df)
-
+pd_data_feeder = PdDataFeeder(
+    df = df,
+    indicators = [
+        BolingerBands(data=df, period=20, std=2),
+        RSI(data=df, period=14),
+        PSAR(data=df),
+        SMA(data=df, period=7),
+        SMA(data=df, period=25),
+        SMA(data=df, period=99),
+    ]
+)
 
 env = TradingEnv(
     data_feeder = pd_data_feeder,
@@ -21,9 +31,9 @@ env = TradingEnv(
     reward_function = simpleReward
 )
 action_space = env.action_space
+input_shape = env.observation_space.shape
 
 pygameRender = PygameRender(frame_rate=60)
-
 
 state, info = env.reset()
 pygameRender.render(info)

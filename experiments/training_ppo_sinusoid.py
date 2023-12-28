@@ -11,7 +11,8 @@ from finrock.data_feeder import PdDataFeeder
 from finrock.trading_env import TradingEnv
 from finrock.scalers import MinMaxScaler
 from finrock.reward import simpleReward
-from finrock.metrics import DifferentActions, AccountValue
+from finrock.metrics import DifferentActions, AccountValue, MaxDrawdown, SharpeRatio
+from finrock.indicators import BolingerBands, RSI, PSAR, SMA
 
 from rockrl.utils.misc import MeanAverage
 from rockrl.utils.memory import Memory
@@ -20,8 +21,17 @@ from rockrl.tensorflow import PPOAgent
 df = pd.read_csv('Datasets/random_sinusoid.csv')
 df = df[:-1000] # leave 1000 for testing
 
-pd_data_feeder = PdDataFeeder(df)
-
+pd_data_feeder = PdDataFeeder(
+    df,
+    indicators = [
+        BolingerBands(data=df, period=20, std=2),
+        RSI(data=df, period=14),
+        PSAR(data=df),
+        SMA(data=df, period=7),
+        SMA(data=df, period=25),
+        SMA(data=df, period=99),
+    ]
+)
 
 env = TradingEnv(
     data_feeder = pd_data_feeder,
@@ -33,6 +43,8 @@ env = TradingEnv(
     metrics = [
         DifferentActions(),
         AccountValue(),
+        MaxDrawdown(),
+        SharpeRatio(),
     ]
 )
 
@@ -63,14 +75,13 @@ critic_model = models.Sequential([
 agent = PPOAgent(
     actor = actor_model,
     critic = critic_model,
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.0002),
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
     batch_size=512,
     lamda=0.95,
     kl_coeff=0.5,
     c2=0.01,
     writer_comment='ppo_sinusoid',
 )
-
 
 memory = Memory()
 meanAverage = MeanAverage(best_mean_score_episode=1000)
@@ -97,7 +108,6 @@ while True:
         agent.log_to_writer(info['metrics'])
         memory.reset()
         state, info = env.reset()
-
 
         if agent.epoch >= 10000:
             break
