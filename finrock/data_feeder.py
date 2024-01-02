@@ -2,6 +2,7 @@ import pandas as pd
 from finrock.state import State
 from finrock.indicators import Indicator
 
+
 class PdDataFeeder:
     def __init__(
             self, 

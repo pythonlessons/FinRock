@@ -215,16 +215,6 @@ class RSI(Indicator):
         self._data['RSI'] = 100 - (100 / (1 + rs))
 
     def default_render_options(self):
-        return {name: RenderOptions(
-            name=name,
-            color=(100, 100, 255),
-            window_type=WindowType.MAIN,
-            render_type=RenderType.DOT,
-            min=self.min,
-            max=self.max
-        ) for name in self._names}
-
-    def default_render_options(self):
         custom_options = {
             "RSI0": 0,
             "RSI30": 30,

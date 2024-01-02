@@ -6,7 +6,7 @@
 </p>
 
 ### Link to YouTube video:
-https://youtu.be/...
+https://youtu.be/bGpBEnKzIdo
 
 ### Link to tutorial code:
 https://github.com/pythonlessons/FinRock/tree/0.4.0

@@ -85,6 +85,14 @@ class AccountValue(Metric):
 
 
 class MaxDrawdown(Metric):
+    """ The Maximum Drawdown (MDD) is a measure of the largest peak-to-trough decline in the 
+    value of a portfolio or investment during a specific period
+
+    The Maximum Drawdown Ratio represents the proportion of the peak value that was lost during 
+    the largest decline. It is a measure of the risk associated with a particular investment or 
+    portfolio. Investors and fund managers use the Maximum Drawdown and its ratio to assess the 
+    historical downside risk and potential losses that could be incurred.
+    """
     def __init__(self, name: str="max_drawdown") -> None:
         super().__init__(name=name)
 
@@ -112,6 +120,13 @@ class MaxDrawdown(Metric):
 
 
 class SharpeRatio(Metric):
+    """ The Sharpe Ratio, is a measure of the risk-adjusted performance of an investment or a portfolio. 
+    It helps investors evaluate the return of an investment relative to its risk.
+
+    A higher Sharpe Ratio indicates a better risk-adjusted performance. Investors and portfolio managers 
+    often use the Sharpe Ratio to compare the risk-adjusted returns of different investments or portfolios. 
+    It allows them to assess whether the additional return earned by taking on additional risk is justified.
+    """
     def __init__(self, ratio_days=365.25, name: str='sharpe_ratio'):
         self.ratio_days = ratio_days
         super().__init__(name=name)
