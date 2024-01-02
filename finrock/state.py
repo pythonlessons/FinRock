@@ -9,7 +9,8 @@ class State:
             high: float, 
             low: float, 
             close: float, 
-            volume: float=0.0
+            volume: float=0.0,
+            indicators: list=[]
         ):
         self.timestamp = timestamp
         self.open = open
@@ -17,6 +18,7 @@ class State:
         self.low = low
         self.close = close
         self.volume = volume
+        self.indicators = indicators
 
         try:
             self.date = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
@@ -100,7 +102,8 @@ class Observations:
         self._observations = []
     
     def append(self, state: State) -> None:
-        assert isinstance(state, State) == True, "state must be a State object"
+        # state should be State object or None
+        assert isinstance(state, State) or state is None, "state must be a State object or None"
         self._observations.append(state)
 
         if len(self._observations) > self._window_size:

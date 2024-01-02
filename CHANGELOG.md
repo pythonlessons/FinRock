@@ -1,3 +1,17 @@
+## [0.4.0] - 2024-01-02
+### Added:
+- Created `indicators` file, where I added `BolingerBands`, `RSI`, `PSAR`, `SMA` indicators
+- Added `SharpeRatio` and `MaxDrawdown` metrics to `metrics`
+- Included indicators handling into `data_feeder.PdDataFeeder` object
+- Included indicators handling into `state.State` object
+
+### Changed:
+- Changed `finrock` package dependency from `0.0.4` to `0.4.1`
+- Refactored `render.PygameRender` object to handle indicators rendering (getting very messy)
+- Updated `scalers.MinMaxScaler` to handle indicators scaling
+- Updated `trading_env.TradingEnv` to raise an error with `np.nan` data and skip `None` states
+
+
 ## [0.3.0] - 2023-12-05
 ### Added:
 - Added `DifferentActions` and `AccountValue` as metrics. Metrics are the main way to evaluate the performance of the agent.
