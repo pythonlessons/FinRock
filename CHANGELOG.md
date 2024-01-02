@@ -1,4 +1,4 @@
-## [0.4.0] - 2023-12-
+## [0.4.0] - 2024-01-02
 ### Added:
 - Created `indicators` file, where I added `BolingerBands`, `RSI`, `PSAR`, `SMA` indicators
 - Added `SharpeRatio` and `MaxDrawdown` metrics to `metrics`
