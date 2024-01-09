@@ -1,4 +1,5 @@
 import typing
+import numpy as np
 from datetime import datetime
 
 class State:
@@ -108,3 +109,27 @@ class Observations:
 
         if len(self._observations) > self._window_size:
             self._observations.pop(0)
+
+    @property
+    def close(self) -> np.ndarray:
+        return np.array([state.close for state in self._observations])
+    
+    @property
+    def high(self) -> np.ndarray:
+        return np.array([state.high for state in self._observations])
+    
+    @property
+    def low(self) -> np.ndarray:
+        return np.array([state.low for state in self._observations])
+    
+    @property
+    def open(self) -> np.ndarray:
+        return np.array([state.open for state in self._observations])
+    
+    @property
+    def allocation_percentage(self) -> np.ndarray:
+        return np.array([state.allocation_percentage for state in self._observations])
+
+    @property
+    def volume(self) -> np.ndarray:
+        return np.array([state.volume for state in self._observations])

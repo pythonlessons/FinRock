@@ -4,9 +4,10 @@ import pandas as pd
 from finrock.data_feeder import PdDataFeeder
 from finrock.trading_env import TradingEnv
 from finrock.render import PygameRender
-from finrock.scalers import MinMaxScaler
-from finrock.reward import simpleReward
-from finrock.indicators import BolingerBands, SMA, RSI, PSAR
+from finrock.scalers import ZScoreScaler
+from finrock.reward import AccountValueChangeReward
+from finrock.indicators import BolingerBands, SMA, RSI, PSAR, MACD
+from finrock.metrics import DifferentActions, AccountValue, MaxDrawdown, SharpeRatio
 
 df = pd.read_csv('Datasets/random_sinusoid.csv')
 
@@ -16,22 +17,29 @@ pd_data_feeder = PdDataFeeder(
         BolingerBands(data=df, period=20, std=2),
         RSI(data=df, period=14),
         PSAR(data=df),
+        MACD(data=df),
         SMA(data=df, period=7),
-        SMA(data=df, period=25),
-        SMA(data=df, period=99),
     ]
 )
 
 env = TradingEnv(
     data_feeder = pd_data_feeder,
-    output_transformer = MinMaxScaler(min=pd_data_feeder.min, max=pd_data_feeder.max),
+    output_transformer = ZScoreScaler(),
     initial_balance = 1000.0,
     max_episode_steps = 1000,
     window_size = 50,
-    reward_function = simpleReward
+    reward_function = AccountValueChangeReward(),
+    metrics = [
+        DifferentActions(),
+        AccountValue(),
+        MaxDrawdown(),
+        SharpeRatio(),
+    ]
 )
 action_space = env.action_space
 input_shape = env.observation_space.shape
+
+env.save_config()
 
 pygameRender = PygameRender(frame_rate=60)
 
