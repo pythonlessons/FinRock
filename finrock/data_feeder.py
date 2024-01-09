@@ -1,8 +1,9 @@
+import os
+import json
+import importlib
 import pandas as pd
 from finrock.state import State
 from finrock.indicators import Indicator
-
-
 
 class PdDataFeeder:
     def __init__(
@@ -10,7 +11,7 @@ class PdDataFeeder:
             df: pd.DataFrame,
             indicators: list = [],
             min: float = None,
-            max: float = None
+            max: float = None,
             ) -> None:
         self._df = df
         self._min = min
@@ -27,6 +28,14 @@ class PdDataFeeder:
 
         assert isinstance(self._indicators, list) == True, "indicators must be an iterable"
         assert all(isinstance(indicator, Indicator) for indicator in self._indicators) == True, "indicators must be a list of Indicator objects"
+
+    @property
+    def __name__(self) -> str:
+        return self.__class__.__name__
+
+    @property
+    def name(self) -> str:
+        return self.__name__
 
     @property
     def min(self) -> float:
@@ -71,3 +80,36 @@ class PdDataFeeder:
         """ Create a generator that iterate over the Sequence."""
         for index in range(len(self)):
             yield self[index]
+
+    def save_config(self, path: str) -> None:
+        config = {
+            "indicators": [],
+            "min": self.min,
+            "max": self.max
+        }
+        for indicator in self._indicators:
+            config["indicators"].append(indicator.config())
+
+        # save config into json file
+        with open(os.path.join(path, "PdDataFeeder.json"), 'w') as outfile:
+            json.dump(config, outfile, indent=4)
+
+    @staticmethod
+    def load_config(df, path: str) -> None:
+        # load config from json file
+        config_path = os.path.join(path, "PdDataFeeder.json")
+        if not os.path.exists(config_path):
+            raise Exception(f"PdDataFeeder Config file not found in {path}")
+        
+        with open(config_path) as json_file:
+            config = json.load(json_file)
+
+        _indicators = []
+        for indicator in config["indicators"]:
+            indicator_class = getattr(importlib.import_module(".indicators", package=__package__), indicator["name"])
+            ind = indicator_class(data=df, **indicator)
+            _indicators.append(ind)
+
+        pdDataFeeder = PdDataFeeder(df=df, indicators=_indicators, min=config["min"], max=config["max"])
+
+        return pdDataFeeder

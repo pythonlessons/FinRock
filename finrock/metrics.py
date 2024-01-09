@@ -24,6 +24,10 @@ class Metric:
         self.name = name
         self.reset()
 
+    @property
+    def __name__(self) -> str:
+        return self.__class__.__name__
+
     def update(self, state: State):
         assert isinstance(state, State), f'state must be State, received: {type(state)}'
 
@@ -136,7 +140,6 @@ class SharpeRatio(Metric):
         time_difference_days = (state.date - self.prev_state.date).days
         if time_difference_days >= 1:
             self.daily_returns.append((state.account_value - self.prev_state.account_value) / self.prev_state.account_value)
-            self.account_values.append(state.account_value)
             self.prev_state = state
         
     @property
@@ -156,5 +159,4 @@ class SharpeRatio(Metric):
     def reset(self, prev_state: State=None):
         super().reset(prev_state)
         self.prev_state = prev_state
-        self.account_values = []
         self.daily_returns = []

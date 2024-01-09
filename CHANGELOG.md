@@ -1,4 +1,22 @@
-## [0.4.0] - 2023-12-
+## [0.5.0] - 2024-01-
+### Added:
+- Added `MACD` indicator to `indicators` file.
+- Added `reward.AccountValueChangeReward` object to calculate reward based on the change in the account value.
+- Added `scalers.ZScoreScaler` that doesn't require min and max to transform data, but uses mean and std instead.
+- Added `ActionSpace` object to handle the action space of the agent.
+- Added support for continuous actions. (float values between 0 and 1)
+
+### Changed:
+- Updated all indicators to have `config` parameter, that we can use so we can serialize the indicators. (save/load configurations to/from file)
+- Changed `reward.simpleReward` to `reward.SimpleReward` Object.
+- Updated `state.State` to have `open`, `high`, `low`, `close` and `volume` attributes.
+- Updated `data_feeder.PdDataFeeder` to be serializable by including `save_config` and `load_config` methods.
+- Included trading fees into `trading_env.TradingEnv` object.
+- Updated `trading_env.TradingEnv` to have `reset` method, which resets the environment to the initial state.
+- Included `save_config` and `load_config` methods into `trading_env.TradingEnv` object, so we can save/load the environment configuration.
+
+
+## [0.4.0] - 2024-01-02
 ### Added:
 - Created `indicators` file, where I added `BolingerBands`, `RSI`, `PSAR`, `SMA` indicators
 - Added `SharpeRatio` and `MaxDrawdown` metrics to `metrics`
