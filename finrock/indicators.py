@@ -2,6 +2,18 @@ import pandas as pd
 
 from .render import RenderOptions, RenderType, WindowType
 
+""" Implemented indicators:
+- SMA
+- Bolinger Bands
+- RSI
+- PSAR
+- MACD (Moving Average Convergence Divergence)
+
+TODO:
+- Commodity Channel Index (CCI), and X is the 
+- Average Directional Index (ADX)
+"""
+
     
 class Indicator:
     """ Base class for indicators
@@ -10,35 +22,57 @@ class Indicator:
             self, 
             data: pd.DataFrame, 
             target_column: str='close',
-            render_options: dict={}
+            render_options: dict={},
+            min: float=None,
+            max: float=None,
+            **kwargs
         ) -> None:
         self._data = data.copy()
         self._target_column = target_column
+        self._custom_render_options = render_options
         self._render_options = render_options
+        self._min = min # if min is not None else self._data[target_column].min()
+        self._max = max # if max is not None else self._data[target_column].max()
         self.values = {}
 
         assert isinstance(self._data, pd.DataFrame) == True, "data must be a pandas.DataFrame"
         assert self._target_column in self._data.columns, f"data must have '{self._target_column}' column"
 
         self.compute()
-        if not self._render_options:
+        if not self._custom_render_options:
             self._render_options = self.default_render_options() 
 
     @property
     def min(self):
-        return self._data[self.target_column].min()
+        return self._min
+    
+    @min.setter
+    def min(self, min: float):
+        self._min = self._min or min
+        if not self._custom_render_options:
+            self._render_options = self.default_render_options() 
     
     @property
     def max(self):
-        return self._data[self.target_column].max()
+        return self._max
+    
+    @max.setter
+    def max(self, max: float):
+        self._max = self._max or max
+        if not self._custom_render_options:
+            self._render_options = self.default_render_options() 
 
     @property
     def target_column(self):
         return self._target_column
 
     @property
-    def name(self):
+    def __name__(self) -> str:
         return self.__class__.__name__
+
+    @property
+    def name(self):
+        return self.__name__
 
     @property
     def names(self):
@@ -78,6 +112,16 @@ class Indicator:
             'min': self.min,
             'max': self.max
         }
+    
+    def config(self):
+        return {
+            'name': self.name,
+            'names': self.names,
+            'target_column': self.target_column,
+            'min': self.min,
+            'max': self.max
+        }
+        
 
 
 class SMA(Indicator):
@@ -98,19 +142,14 @@ class SMA(Indicator):
             data: pd.DataFrame, 
             period: int=20, 
             target_column: str='close',
-            render_options: dict={}
+            render_options: dict={},
+            **kwargs
         ):
         self._period = period
         self._names = [f'SMA{period}']
-        super().__init__(data, target_column, render_options)
-
-    @property
-    def min(self):
-        return self._data[self.names[0]].min()
-    
-    @property
-    def max(self):
-        return self._data[self.names[0]].max()
+        super().__init__(data, target_column, render_options, **kwargs)
+        self.min = self._data[self._names[0]].min()
+        self.max = self._data[self._names[0]].max()
     
     def default_render_options(self):
         return {name: RenderOptions(
@@ -124,6 +163,11 @@ class SMA(Indicator):
 
     def compute(self):
         self._data[self.names[0]] = self._data[self.target_column].rolling(self._period).mean()
+
+    def config(self):
+        config = super().config()
+        config['period'] = self._period
+        return config
 
 
 class BolingerBands(Indicator):
@@ -147,20 +191,15 @@ class BolingerBands(Indicator):
             period: int=20, 
             std: int=2,
             target_column: str='close',
-            render_options: dict={}
+            render_options: dict={},
+            **kwargs
         ):
         self._period = period
         self._std = std
         self._names = ['SMA', 'BB_up', 'BB_dn']
-        super().__init__(data, target_column, render_options)
-
-    @property
-    def min(self):
-        return self._data['BB_dn'].min()
-    
-    @property
-    def max(self):
-        return self._data['BB_up'].max()
+        super().__init__(data, target_column, render_options, **kwargs)
+        self.min = self._data['BB_dn'].min()
+        self.max = self._data['BB_up'].max()
 
     def compute(self):
         self._data['SMA'] = self._data[self.target_column].rolling(self._period).mean()
@@ -177,6 +216,11 @@ class BolingerBands(Indicator):
             max=self.max
         ) for name in self._names}
 
+    def config(self):
+        config = super().config()
+        config['period'] = self._period
+        config['std'] = self._std
+        return config
 
 class RSI(Indicator):
     """ Momentum indicator
@@ -191,19 +235,14 @@ class RSI(Indicator):
             data: pd.DataFrame, 
             period: int=14, 
             target_column: str='close',
-            render_options: dict={}
+            render_options: dict={},
+            min: float=0.0,
+            max: float=100.0,
+            **kwargs
         ):
         self._period = period
         self._names = ['RSI']
-        super().__init__(data, target_column, render_options)
-
-    @property
-    def min(self):
-        return 0.0
-    
-    @property
-    def max(self):
-        return 100.0
+        super().__init__(data, target_column, render_options, min=min, max=max, **kwargs)
 
     def compute(self):
         delta = self._data[self.target_column].diff()
@@ -242,6 +281,11 @@ class RSI(Indicator):
             )
         return options
 
+    def config(self):
+        config = super().config()
+        config['period'] = self._period
+        return config
+
 
 class PSAR(Indicator):
     """ Parabolic Stop and Reverse (Parabolic SAR)
@@ -260,20 +304,15 @@ class PSAR(Indicator):
             step: float=0.02, 
             max_step: float=0.2,
             target_column: str='close',
-            render_options: dict={}
+            render_options: dict={},
+            **kwargs
         ):
         self._names = ['PSAR']
         self._step = step
         self._max_step = max_step
-        super().__init__(data, target_column, render_options)
-
-    @property
-    def min(self):
-        return self._data['PSAR'].min()
-    
-    @property
-    def max(self):
-        return self._data['PSAR'].max()
+        super().__init__(data, target_column, render_options, **kwargs)
+        self.min = self._data['PSAR'].min()
+        self.max = self._data['PSAR'].max()
 
     def default_render_options(self):
         return {name: RenderOptions(
@@ -361,3 +400,61 @@ class PSAR(Indicator):
 
         # calculate psar indicator
         self._data['PSAR'] = self._psar
+
+    def config(self):
+        config = super().config()
+        config['step'] = self._step
+        config['max_step'] = self._max_step
+        return config
+    
+
+class MACD(Indicator):
+    """ Moving Average Convergence Divergence (MACD)
+    """
+    def __init__(
+            self, 
+            data: pd.DataFrame, 
+            fast_ma: int = 12,
+            slow_ma: int = 26,
+            histogram: int = 9,
+            target_column: str='close',
+            render_options: dict={}, 
+            **kwargs
+        ):
+        self._fast_ma = fast_ma
+        self._slow_ma = slow_ma
+        self._histogram = histogram
+        self._names = ['MACD', 'MACD_signal']
+        super().__init__(data, target_column, render_options, **kwargs)
+        self.min = self._data['MACD_signal'].min()
+        self.max = self._data['MACD_signal'].max()
+
+    def compute(self):
+        # Calculate the Short Term Exponential Moving Average (EMA)
+        short_ema = self._data[self.target_column].ewm(span=self._fast_ma, adjust=False).mean()
+
+        # Calculate the Long Term Exponential Moving Average (EMA)
+        long_ema = self._data[self.target_column].ewm(span=self._slow_ma, adjust=False).mean()
+
+        # Calculate the Moving Average Convergence/Divergence (MACD)
+        self._data["MACD"] = short_ema - long_ema
+
+        # Calculate the Signal Line
+        self._data["MACD_signal"] = self._data["MACD"].ewm(span=9, adjust=False).mean()
+
+    def default_render_options(self):
+        return {name: RenderOptions(
+            name=name,
+            color=(100, 100, 255),
+            window_type=WindowType.SEPERATE,
+            render_type=RenderType.LINE,
+            min=self.min,
+            max=self.max
+        ) for name in self._names}
+    
+    def config(self):
+        config = super().config()
+        config['fast_ma'] = self._fast_ma
+        config['slow_ma'] = self._slow_ma
+        config['histogram'] = self._histogram
+        return config
