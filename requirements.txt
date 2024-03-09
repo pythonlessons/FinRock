@@ -3,3 +3,12 @@ pandas
 matplotlib
 rockrl==0.4.4
 tensorflow==2.10.0
+python_dotenv
+requests
+numpy
+opencv-python
+matplotlib
+mplfinance
+ta
+bitfinex-tencars
+bitfinex

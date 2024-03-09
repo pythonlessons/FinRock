@@ -5,3 +5,4 @@ venv*
 Datasets
 runs
 Models
+.vs/
