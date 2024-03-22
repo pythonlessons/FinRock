@@ -10,10 +10,10 @@ from finrock.trading_env import TradingEnv
 from finrock.render import PygameRender
 
 
-df = pd.read_csv('Datasets/random_sinusoid.csv')
+df = pd.read_csv('../bin/Datasets/random_sinusoid.csv')
 df = df[-1000:]
 
-model_path = "runs/1704798174"
+model_path = "runs/1711079470"
 
 pd_data_feeder = PdDataFeeder.load_config(df, model_path)
 env = TradingEnv.load_config(pd_data_feeder, model_path)
