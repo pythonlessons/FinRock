@@ -9,4 +9,3 @@ numpy
 opencv-python
 mplfinance
 ta
-bitfinex-v2
