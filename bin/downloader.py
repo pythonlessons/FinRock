@@ -65,7 +65,7 @@ def download_data_to_csv(symbol, timeframe, limit):
 
 
 symbol = 'ETHUSD'  # Example: Ethereum/US Dollar
-timeframe = '4H'    # Fetch 4-hour candlestick data
+timeframe = '4h'    # Fetch 4-hour candlestick data
 limit = 1000           # Number of data points to retrieve
 
 download_data_to_csv(symbol, timeframe, limit)
